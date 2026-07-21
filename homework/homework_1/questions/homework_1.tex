@@ -1,0 +1,228 @@
+\documentclass[11pt, letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{amsmath, amssymb}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+% Make parindent 0
+\setlength{\parindent}{0pt}
+\setlist{itemsep=0.5em}
+\setlength{\parskip}{0.5em}
+
+\geometry{margin=1in}
+\setlength{\headheight}{14pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textbf{Student Name:} \textcolor{red}{YOUR NAME}} % CHANGE NAME HERE
+\rhead{\textbf{Data Analysis and Regression, Homework 1}}
+\cfoot{\thepage}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+\newcommand{\problem}[1]{\section*{Problem #1}}
+\newcommand{\subproblem}[1]{\subsection*{Problem #1}}
+\newcommand{\answer}{\textbf{\textit{\textcolor{red}{Answer:}}}\\}
+
+\begin{document}
+
+\section*{Instructions}
+\begin{itemize}
+    \item Homework 1 is due Monday, July 27th at 18:00 Chicago Time.
+    \begin{itemize}
+        \item We will not accept any submissions past 18:00:00, even if they are only one second late.
+    \end{itemize}
+    \item You \textbf{must} upload the following files to the class Canvas:
+    \begin{itemize}
+        \item \texttt{LASTNAME\_FIRSTNAME.pdf}
+        \item \texttt{LASTNAME\_FIRSTNAME.ipynb}
+    \end{itemize}
+    \item Your code notebook \textbf{must} be runnable using my environment outlined in class 1 (Python 3.14, and the \texttt{requirements.txt}).
+    \item You \textbf{must} use this template file and fill out your solutions for the written portion.
+    \item Please note that your last name and first name should match what you appear on Canvas as.
+    \item Include code snippets where required, as well as math and equations.
+    \item Be \textit{concise} where possible, all of the homework problems can be answered in a few lines of math, code, and words.
+\end{itemize}
+\hrule
+\vspace{0.5cm}
+
+\pagebreak
+
+\problem{1: One-Dimensional Data}
+
+Load in the data from the GitHub repository for this class.
+\begin{lstlisting}[language=python]
+import pandas as pd
+
+df = pd.read_csv(
+    "https://raw.githubusercontent.com/tobiasdelpozo/data-analysis-2026/refs/heads/master/homework/homework_1/questions/homework_1_data.csv"
+)
+\end{lstlisting}
+
+\subproblem{1.1}
+
+For the feature labeled \texttt{X1}, compute the mean, median, variance, and standard deviation. 
+Report your numbers below (rounded to at least 4 decimal places).
+
+\answer
+
+\subproblem{1.2}
+
+Display a histogram of the feature \texttt{X1} using 50 bins. Do you think that 
+the statistics you computed in 1.1 are good descriptors of the data? Include the graph below,
+and explain your reasoning in 1-2 sentences. \footnote{Hint: you can use \texttt{\textbackslash includegraphics\{\}} to include images in \LaTeX.}
+
+\answer
+
+\subproblem{1.3}
+
+Using the same feature \texttt{X1}, come up with some metrics that 
+are descriptive of the distribution of the data. Note, this is open-ended,
+so think about what the data looks like, and how a human would describe it.
+
+\answer
+
+
+\pagebreak
+
+\problem{2: kNN Regression}
+
+This problem uses the same dataset as Problem 1.
+
+We're going to implement a k-Nearest Neighbors regression model. Unless otherwise specified, use an 80/20 train/test split for all parts of this problem.
+
+\subproblem{2.1}
+
+Display a plot of \texttt{X2} versus the \texttt{target} variable. What 
+do you notice about the relationship between these two variables?
+
+\answer
+
+\subproblem{2.2}
+
+Implement a kNN regression model from scratch. You may use \texttt{numpy} and \texttt{pandas}, but you may not use any machine learning libraries (e.g. \texttt{scikit-learn}).
+
+Your model should take in 4 parameters:
+\begin{itemize}
+    \item \texttt{X\_train}: training features
+    \item \texttt{y\_train}: training target variable
+    \item \texttt{X\_test}: testing features
+    \item \texttt{k}: number of neighbors to use
+\end{itemize}
+And it should output the predicted values for \texttt{X\_test}.
+
+The algorithm you should use is as follows:
+\begin{enumerate}
+    \item For each test point, compute the Euclidean distance to all training points.
+    \item Identify the k-nearest neighbors based on these distances.
+    \item Compute the predicted value as the mean of the target variable of these k-nearest neighbors.
+\end{enumerate}
+Note that we are only considering a single feature for this problem, so the Euclidean distance is
+simply $\sqrt{(x_{\text{test}} - x_{\text{train}})^2}$.
+
+Include your code implementation below.\footnote{
+    Hint: you can use \texttt{\textbackslash lstlisting[language=python]} to include Python code snippets.
+}
+
+\answer
+
+\subproblem{2.3}
+
+Randomly split the data into training and testing sets (80/20 split), and
+report the Mean Squared Error (MSE) of your kNN regression model on the test set for $k=5$.
+
+\answer
+
+\subproblem{2.4}
+
+For $k \in \{1, 5, 10, 20, 50, 100 \}$, compute the MSE on the test set and plot the results (k values on the x-axis, MSE on the y-axis).
+What value of $k$ gives the best performance on the test set?
+
+\answer
+
+
+\subproblem{2.5}
+
+Which value of $k$ do you think has the highest bias? And which has the highest variance? Explain your reasoning in 1-2 sentences.
+
+\answer
+
+\problem{3: Linear Regression}
+
+Using the same dataset as Problems 1 and 2, we are going to explore linear regression.
+
+\subproblem{3.1}
+
+Using \texttt{statsmodels}, fit a linear regression model to predict \texttt{y} using \texttt{X3}.
+You should \textbf{not} use an intercept term in your model. Report your
+$\beta$ coefficient below:
+
+\answer
+
+\subproblem{3.2}
+
+Re-run the linear regression model from 3.1, but this time include an intercept term.
+What are your new $\beta$ coefficients (intercept and slope)?
+
+\answer
+
+\subproblem{3.3}
+
+Do the following data transformations:
+$$\tilde{y} = y - \bar{y} \quad \quad \tilde{X}_3 = X_3 - \bar{X}_3$$
+
+Re-run the linear regression model using $\tilde{y}$ and $\tilde{X}_3$, without an intercept term.
+What is your $\beta$ coefficient? How does it compare to your answer in 3.1?
+
+\answer
+
+\subproblem{3.4}
+
+Inspect your data. Display a scatter plot of \texttt{X3} versus \texttt{y}. What do you notice about the relationship between these two variables?
+Is a linear model appropriate for this data? Explain your reasoning in 1-2 sentences.
+
+\answer
+
+\subproblem{3.5}
+
+Define a new feature $\texttt{X3\_sin}$ as follows: 
+$$\texttt{X3\_sin} = \sin(\texttt{X3})$$
+
+Fit a linear regression model to predict \texttt{y} using \texttt{X3\_sin}, including an intercept term.
+Report your $\beta$ coefficients (intercept and slope) below:
+
+\answer
+
+\subproblem{3.6}
+
+Display a plot of \texttt{X3\_sin} versus \texttt{y}. Do you think a linear model is appropriate for this data? Explain your reasoning in 1-2 sentences.
+
+\answer
+
+\end{document}
