@@ -1,0 +1,352 @@
+\documentclass[11pt, letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{amsmath, amssymb}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\setlength{\parindent}{0pt}
+\setlist{itemsep=0.5em}
+\setlength{\parskip}{0.5em}
+
+\geometry{margin=1in}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textbf{Student Name:} \textcolor{red}{YOUR NAME}} % CHANGE NAME HERE
+\rhead{\textbf{Data Analysis and Regression, Homework 3}}
+\cfoot{\thepage}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+\newcommand{\problem}[1]{\section*{Problem #1}}
+\newcommand{\subproblem}[1]{\subsection*{Problem #1}}
+\newcommand{\answer}{\textbf{\textit{\textcolor{red}{Answer:}}}\\}
+
+\begin{document}
+
+\section*{Instructions}
+\begin{itemize}
+    \item Homework 3 is due Monday, August 10th at 18:00 Chicago Time.
+    \begin{itemize}
+        \item We will not accept any submissions past 18:00:00, even if they are only one second late.
+    \end{itemize}
+    \item You \textbf{must} upload the following files to the class Canvas:
+    \begin{itemize}
+        \item \texttt{LASTNAME\_FIRSTNAME.pdf}
+        \item \texttt{LASTNAME\_FIRSTNAME.ipynb}
+    \end{itemize}
+    \item Your code notebook \textbf{must} be runnable using my environment outlines in class 1 (Python 3.14, and the \texttt{requirements.txt}).
+    \item You \textbf{must} use this template file and fill out your solutions for the written portion.
+    \item Please note that your last name and first name should match what you appear on Canvas as.
+    \item Include code snippets where required, as well as math and equations.
+    \item Be \textit{concise} where possible, all of the homework probelms can be answered in a few lines of math, code, and words.
+\end{itemize}
+\hrule
+\vspace{0.5cm}
+
+\pagebreak
+
+\problem{1: Ridge Regression and Stability}
+
+Generate a dataset with $n=100$ observations based on the true model:
+$$ y = 1 + x_1 + x_2 + \epsilon $$
+where $\epsilon \sim \mathcal{N}(0, 1)$.
+
+Additionally, make $x_1, x_2 \sim \mathcal{N}(0, 1)$ highly correlated, with $\rho = 0.99999$. You
+can do this via the following code snippet:
+    \begin{lstlisting}[language=Python]
+import numpy as np
+np.random.seed(1)
+
+mean = [0, 0]
+cov = [[1, 0.99999], [0.99999, 1]]
+x1, x2 = np.random.multivariate_normal(mean, cov, 100).T
+epsilon = np.random.normal(0, 1, 100)\end{lstlisting}
+    
+\answer
+
+
+\subproblem{1.1: OLS Inference}
+Fit an OLS model to your generated data using \texttt{statsmodels}.
+\begin{itemize}
+    \item Report the p-values and confidence intervals for $\hat{\beta}_1$ and $\hat{\beta}_2$.
+    \item Discuss the results. Are the coefficients close to the true values ($1$ and $1$)? Are they statistically significant?
+\end{itemize}
+
+\answer
+
+\subproblem{1.2: Stability}
+Now, re-generate your data using \texttt{np.random.seed(42)} and fit the OLS model again.
+\begin{itemize}
+    \item Report the new estimates for $\hat{\beta}_1$ and $\hat{\beta}_2$.
+    \item Compare these estimates to the previous ones. What do you notice?
+\end{itemize}
+
+\answer
+
+\subproblem{1.3 Variance via Simulation}
+
+To better understand this phenomenon, run a simulation (note, you will need to unset the random seed for this part):
+\begin{itemize}
+    \item Run a simulation loop 1000 times. In each iteration, generate a new dataset ($x1, x2, \epsilon$) and fit an OLS model.
+    \item Store the estimates for $\hat{\beta}_1$ and $\hat{\beta}_2$.
+\end{itemize}
+Plot 2 histograms showing the distribution of the estimates for $\hat{\beta}_1$ and $\hat{\beta}_2$.
+Additionally, report the volatility (standard deviation) of your $\hat{\beta}_1$ and $\hat{\beta}_2$ estimates across the simulations.
+
+\answer
+
+\subproblem{1.3: Ridge to the Rescue}
+Now, fit a Ridge Regression model using \texttt{statsmodels} (you can use \texttt{fit\_regularized} with \texttt{L1\_wt=0} for Ridge).
+\begin{itemize}
+    \item Use three different values for alpha (lambda): $0.01$, $0.1$, and $1$.
+    \item For each alpha, report the coefficients $\hat{\beta}_1$ and $\hat{\beta}_2$.
+    \item Discuss how the coefficients change with different alpha values.
+\end{itemize}
+
+\answer
+
+\subproblem{1.4: Ridge Simulation}
+Next, you should repeat the simulation from subproblem 1.3, but this time use a Ridge model with a fixed alpha of $0.01$.
+\begin{itemize}
+    \item Run the simulation loop 1000 times, generating new datasets and fitting the Ridge model each time.
+    \item Store the estimates for $\hat{\beta}_1$ and $\hat{\beta}_2$.
+\end{itemize}
+Plot 2 histograms showing the distribution of the Ridge estimates for $\hat{\beta}_1$ and $\hat{\beta}_2$.
+Additionally, report the volatility (standard deviation) of your Ridge $\hat{\beta}_1$ and $\hat{\beta}_2$ estimates across the simulations.
+Compare these volatilities to those obtained from the OLS simulation in subproblem 1.3.
+
+\answer
+
+\problem{2: Lasso Regression and Sparsity}
+
+This problem explores Lasso regression for a sparse model.
+
+Generate a dataset with $n=100$ observations and $p=50$ features. 
+The true model depends on only the first 3 features, while the remaining 47 features are irrelevant.
+$$ y = 5x_1 - 2x_2 + 3x_3 + \epsilon $$
+where $\epsilon \sim \mathcal{N}(0, 1)$ and all $x_j \sim \mathcal{N}(0, 1)$.
+
+Use the following code snippet to generate your data:
+    \begin{lstlisting}[language=Python]
+import numpy as np
+np.random.seed(42)
+
+n_samples = 100
+n_features = 50
+
+X = np.random.normal(0, 1, (n_samples, n_features))
+true_beta = np.zeros(n_features)
+true_beta[:3] = [5, -2, 3]
+
+y = np.dot(X, true_beta) + np.random.normal(0, 1, n_samples)\end{lstlisting}
+
+\subproblem{2.1: Naive OLS}
+Fit an OLS model using all 50 features.
+\begin{itemize}
+    \item Look at the coefficients for the 47 ``noise" features ($x_4$ through $x_{50}$). Are they exactly zero (you don't need to report them all)?
+    \item How many of these noise features have p-values $< 0.05$ (i.e., appear statistically significant purely by chance)?
+\end{itemize}
+
+\answer
+
+\subproblem{2.2: Lasso for Feature Selection}
+Now, fit a Lasso model using \texttt{statsmodels}. 
+You can do this using \texttt{fit\_regularized} with \texttt{L1\_wt=1} 
+(which specifies pure Lasso). Use an alpha of $0.1$, $1.0$, and $100$.
+\begin{itemize}
+    \item Report the estimated coefficients.
+    \item How many coefficients are estimated to be exactly zero?
+    \item Did the Lasso model correctly identify the 3 relevant features ($x_1, x_2, x_3$) while suppressing the noise?
+    \item Which alpha value would you recommend?
+\end{itemize}
+
+\answer
+
+\subproblem{2.3: The Regularization Path}
+The sparsity of the model depends heavily on the strength of $\alpha$.
+\begin{itemize}
+    \item Create a list of alphas: \texttt{[0.001, 0.01, 0.1, 0.5, 1.0, 5.0, 10, 100, 1000]}.
+    \item Loop through these alphas, fitting a Lasso model for each.
+    \item For each alpha, store the values of all coefficients.
+\end{itemize}
+Plot a graph with $\log(\alpha)$ on the x-axis and the coefficients on the y-axis (you can plot each coefficient as a separate line).
+Discuss how the coefficients change as alpha increases, and what the bias looks like (how far are the first 3 coefficients from their true values?).
+
+\textit{Hint: It might be useful to plot the irrelevant coefficients in gray, and the relevant ones in different colors.}
+
+\answer
+
+
+\problem{3: Time Series and Time-Varying Heteroskedasticity}
+
+Generate a dataset with $n=1000$ observations. 
+The data follows an AR(1) process:
+$$ y_t = 0.5 y_{t-1} + \epsilon_t $$
+The error term $\epsilon_t$ follows an ARCH(1) process plus a regime:
+$$ \epsilon_t = \sigma_t z_t, \quad z_t \sim \mathcal{N}(0,1) $$
+$$ \sigma_t^2 = 1 + 0.5 \epsilon_{t-1}^2 + 10 \cdot \mathbb{I}_{\text{HighRegime}} $$
+
+Use the following code snippet to generate your data:
+    \begin{lstlisting}[language=Python]
+import numpy as np
+import pandas as pd
+
+np.random.seed(100)
+n = 1000
+
+indicator = np.zeros(n)
+for i in range(0, n, 200):
+    indicator[i:i+100] = 1 
+
+epsilon = np.zeros(n)
+sigma2 = np.zeros(n)
+epsilon[0] = np.random.normal(0, 1)
+
+for t in range(1, n):
+    sigma2[t] = 1 + 0.5 * (epsilon[t-1]**2) + 10 * indicator[t]
+    epsilon[t] = np.random.normal(0, np.sqrt(sigma2[t]))
+
+y = np.zeros(n)
+phi = 0.5
+for t in range(1, n):
+    y[t] = phi * y[t-1] + epsilon[t]\end{lstlisting}
+
+\subproblem{3.1: The AR(1) Model}
+
+First, fit an AR(1) model to the generated series $y_t$.
+$$
+y_t = \phi y_{t-1} + \epsilon_t
+$$
+
+Extract the residuals $\epsilon_t$ from this model.
+
+Create two plots:
+\begin{itemize}
+    \item Residuals vs. fitted values.
+    \item Residuals over time.
+\end{itemize}
+What do you notice about the first graph vs. the second graph?
+
+\answer
+
+\subproblem{3.2: ACF}
+Plot the Autocorrelation Function (ACF) of the squared residuals $\hat{\epsilon}_t^2$.
+
+What does the ACF plot suggest about the independence of the squared residuals?
+
+\answer
+
+\subproblem{3.3: Modeling Variance (ARCH + Regime)}
+Now, we will model the variance of these residuals explicitly. We hypothesize that the variance $\sigma_t^2$ depends on the previous squared residual (ARCH effect) and the regime indicator.
+\begin{itemize}
+    \item Construct the squared residuals $\hat{\epsilon}_t^2$.
+    \item Construct a lagged feature $\hat{\epsilon}_{t-1}^2$.
+    \item Run a linear regression of $\hat{\epsilon}_t^2$ on:
+    $$ \sigma_t^2 = \beta_0 + \beta_1 \hat{\epsilon}_{t-1}^2 + \beta_2 \mathbb{I}_{\text{HighRegime}} $$
+    \item Report the coefficients, compare them to the true values ($\beta_0=1$, $\beta_1=0.5$, $\beta_2=10$), and discuss their statistical significance.
+\end{itemize}
+
+\answer
+
+\subproblem{3.4: Regime-Dependent Forecasting}
+Suppose we are at the end of the series ($T=1000$) and we want to predict the range of movement for the next step ($T=1001$).
+Assume the last observed residual was $\hat{\epsilon}_{1000} = 2$.
+
+Calculate the predicted variance $\hat{\sigma}_{1001}^2$ and the resulting 95\% Confidence Interval width ($\pm 1.96 \hat{\sigma}_{1001}$) for the error term under two scenarios:
+\begin{itemize}
+    \item \textbf{Scenario A (Low Regime):} Assume the indicator for $T=1001$ is 0.
+    \item \textbf{Scenario B (High Regime):} Assume the indicator for $T=1001$ is 1.
+\end{itemize}
+(Use the coefficients you estimated in 3.3).
+
+What do you observe about your confidence intervals in the two scenarios?
+
+\answer
+
+\problem{4: Weighted Least Squares}
+
+This problem focuses on verifying the findings of Class 3 regarding
+Weighted Least Squares (WLS).
+
+\subproblem{4.1: Setup}
+
+Similar to before, define the true model as:
+$$
+y = 2x
+$$
+Where $x$ is sampled from the uniform distribution $x \sim \text{Uniform}(1, 2)$.
+
+Second, define the noise $\epsilon_i$ to be sampled from a normal distribution with mean 0,
+and variance $\sigma_i^2$ that depends on $x_i$ as follows:
+$$
+\sigma_i^2 = \frac{1}{x_i^2}
+$$
+
+For $n=500$, please plot the generated data points $(x_i + \epsilon_i, y_i)$.
+
+\answer
+
+\subproblem{4.2: Naive OLS}
+
+Fit a standard OLS regression to the data generated above.
+
+Report your estimate $\hat{\beta}_{\text{OLS}}$, and the confidence interval for the estimate.
+
+\answer
+
+\subproblem{4.3: Interpretation}
+
+Briefly discuss whether naive OLS will be under or over confident in its estimate of $\hat{\beta}_{\text{OLS}}$,
+and why.
+
+\answer
+
+\subproblem{4.4: Visualization}
+
+Plot a Q-Q plot of the residuals from the naive OLS regression. What do you observe?
+
+\answer
+
+\subproblem{4.5: Weighted Least Squares}
+
+Fit a Weighted Least Squares regression to the data generated above, using weights $w_i = x_i^2$.
+Report your estimate $\hat{\beta}_{\text{WLS}}$, and the confidence interval for the estimate.
+
+\answer
+
+\subproblem{4.6: Visualization}
+
+Plot a Q-Q plot of the weighted residuals from the WLS regression. What do you observe compared
+to the Q-Q plot from the naive OLS regression?
+
+\answer
+
+
+\end{document}
