@@ -1,0 +1,363 @@
+\documentclass[11pt, letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{amsmath, amssymb}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\setlength{\parindent}{0pt}
+\setlist{itemsep=0.5em}
+\setlength{\parskip}{0.5em}
+
+\geometry{margin=1in}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textbf{Student Name:} \textcolor{red}{YOUR NAME}} % CHANGE NAME HERE
+\rhead{\textbf{Data Analysis and Regression, Homework 4}}
+\cfoot{\thepage}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+\newcommand{\problem}[1]{\section*{Problem #1}}
+\newcommand{\subproblem}[1]{\subsection*{Problem #1}}
+\newcommand{\answer}{\textbf{\textit{\textcolor{red}{Answer:}}}}
+\begin{document}
+
+\section*{Instructions}
+\begin{itemize}
+    \item Homework 4 is due Monday, August 17th at 18:00 Chicago Time.
+    \begin{itemize}
+        \item We will not accept any submissions past 18:00:00, even if they are only one second late.
+    \end{itemize}
+    \item You \textbf{must} upload the following files to the class Canvas:
+    \begin{itemize}
+        \item \texttt{LASTNAME\_FIRSTNAME.pdf}
+        \item \texttt{LASTNAME\_FIRSTNAME.ipynb}
+    \end{itemize}
+    \item Your code notebook \textbf{must} be runnable using my environment outlined in class 1 (Python 3.14, and the \texttt{requirements.txt}).
+    \item You \textbf{must} use this template file and fill out your solutions for the written portion.
+    \item Please note that your last name and first name should match what you appear on Canvas as.
+    \item Include code snippets where required, as well as math and equations.
+    \item Be \textit{concise} where possible, all of the homework problems can be answered in a few lines of math, code, and words.
+    \item Each problem gives you the data code and the solver settings. Use them as written. Then your numbers will agree with your classmates' numbers.
+\end{itemize}
+\hrule
+\vspace{0.5cm}
+
+\pagebreak
+
+\problem{1: New Data in Our Curve}
+
+We'll start by fitting a curve made up of pieces (piecewise linear). Where these pieces intersect are our knots. With $K$ knots the model is:
+$$
+f(x) = w_0 + w_1 x + \sum_{j=1}^{K} w_{1+j} (x - \kappa_j)_{+},
+\qquad (u)_{+} = \max(u, 0)
+$$
+
+Each column $(x - \kappa_j)_+$ is zero before the knot $\kappa_j$. After the knot it has a slope of 1,, so that $w_{1+j}$ is the change in slope at that knot. The model has $p = 2 + K$ parameters.
+
+    \begin{lstlisting}[language=Python]
+import numpy as np
+
+def basis(x, knots):
+    """Build the basis matrix. One extra column per knot."""
+    cols = [np.ones_like(x), x] + [np.clip(x - k, 0.0, None) for k in knots]
+    return np.column_stack(cols)
+
+def knots(K):
+    """K knots, evenly spaced inside (0, 1)."""
+    return np.linspace(0, 1, K + 2)[1:-1]
+
+def fit_ols(A, y):
+    beta, *_ = np.linalg.lstsq(A, y, rcond=None)
+    return beta\end{lstlisting}
+The $x$ values are the same for all draws; note that only the noise is random (same as Homework 2).
+
+    \begin{lstlisting}[language=Python]
+N_TRAIN, N_TEST = 60, 500
+SIGMA   = 0.3
+K_MAX   = 18
+N_REPS  = 600
+
+x_train = np.linspace(0, 1, N_TRAIN)
+x_test  = np.linspace(0.005, 0.995, N_TEST)
+
+def f_true(x):
+    return np.sin(2 * np.pi * x)
+
+# in repetition s, use rng = np.random.RandomState(s) and draw
+#   y_train = f_true(x_train) + rng.normal(0, SIGMA, N_TRAIN)
+#   y_test  = f_true(x_test)  + rng.normal(0, SIGMA, N_TEST)\end{lstlisting}
+
+\subproblem{1.1: Basis Functions}
+\begin{itemize}
+    \item Plot the columns of \texttt{basis(x\_train, knots(4))} against $x$.
+    \item In one sentence, what does the coefficient on the column $(x - \kappa_j)_+$ tell you?
+\end{itemize}
+
+\answer
+
+\subproblem{1.2: One Set of Data}
+Use \texttt{np.random.RandomState(0)} for the noise. Fit the model for $K = 1$, $K = 4$ and $K = 18$.
+\begin{itemize}
+    \item Plot the training data and the three curves on one plot.
+    \item Just from eyeballing; which do you think is the best from balancing bias and variance?
+\end{itemize}
+
+\answer
+
+\subproblem{1.3: Sim}
+For each $K = 0, 1, \dots, 30$ and each repetition $s = 0, \dots, 999$:
+\begin{enumerate}
+    \item Draw new \texttt{y\_train} and \texttt{y\_test} with \texttt{np.random.RandomState(s)}.
+    \item Fit the model on the training data only.
+    \item Record the MSE on the training data and the MSE on the test data.
+\end{enumerate}
+Take the mean of each over the 600 repetitions.
+\begin{itemize}
+    \item Plot the two mean curves against $K$ on one plot (ie. mean MSE and test MSE for each $K$).
+    \item Give a table of the two values for $K \in \{0, 2, 3, 5, 10, 15, 30\}$.
+\end{itemize}
+
+\answer
+
+\subproblem{1.4: What the Plot Shows}
+\begin{itemize}
+    \item Does the training MSE ever increase when you add a knot? 
+    \item In one sentence, why is that?
+    \item Give the value of $K$ with the lowest test MSE.
+\end{itemize}
+
+\answer
+
+\subproblem{1.5: Theory}
+For a model with $p$ parameters that has the correct shape, the expected test MSE is roughly:
+$$
+\sigma^2 \left( 1 + \frac{p}{n} \right)
+$$
+Here $p = 2 + K$ and $n = 60$.
+\begin{itemize}
+    \item Draw this theoretical curve on top of your test MSE curve (from the previous question).
+    \item Give the range of $K$ where $\left| \text{simulated} / \text{formula} - 1 \right| \le 0.03$.
+    \item In 1--2 sentences, what does the formula leave out at small $K$?
+\end{itemize}
+
+\answer
+
+\pagebreak
+
+\problem{2: Which Knots Are Real?}
+
+In the previous question, the data as a sin wave. This time, the data really is piecewise linear; the slope changes at $x = 0.3$ and at
+$x = 0.7$. There are 19 possible knots, and we need to see if we can find the real ones.
+
+    \begin{lstlisting}[language=Python]
+TRUE_KNOTS = [0.3, 0.7]
+TRUE_BETA  = np.array([0.0, 2.0, -8.0, 10.0])   # intercept, slope, then the two slope changes
+CANDIDATE_KNOTS = np.linspace(0.05, 0.95, 19)
+N2, SIGMA2 = 200, 0.3
+
+rng = np.random.RandomState(7)
+x2 = rng.uniform(0, 1, N2)
+y2 = basis(x2, TRUE_KNOTS) @ TRUE_BETA + rng.normal(0, SIGMA2, N2)
+
+# scikit-learn adds its own intercept, so remove the first column
+A_full = basis(x2, CANDIDATE_KNOTS)
+design = A_full[:, 1:]\end{lstlisting}
+
+\subproblem{2.1: Plain OLS}
+Fit OLS with all 19 possible knots.
+\begin{itemize}
+    \item Give the largest coefficient of the 19 knot columns, in absolute value.
+    \item Plot the fitted curve.
+    \item Can you find the two real knots from the coefficients? Give a why or why not reason in one sentence.
+\end{itemize}
+
+\answer
+
+\subproblem{2.2: Lasso to the Rescue?}
+Fit \texttt{LassoCV(cv=5, random\_state=0, max\_iter=200000)} on \texttt{design}.
+\begin{itemize}
+    \item Give the $\alpha$/$\lambda$ that it selects.
+    \item Give the number of knots with a coefficient that is not zero (or extremely close to it). Are both real knots in the list?
+\end{itemize}
+
+\answer
+
+\subproblem{2.3: Change the Penalty}
+Fit \texttt{Lasso(alpha=a, max\_iter=200000)} for
+$a \in \{0.001,\, 0.005,\, 0.01,\, 0.02,\, 0.05,\, 0.1\}$.
+\begin{itemize}
+    \item Give a table with one row for each $\alpha$: the number of knots that stay, and their values.
+    \item Is there an $\alpha$ that keeps exactly $\{0.3,\ 0.7\}$ and nothing else?
+\end{itemize}
+
+\answer
+
+\subproblem{2.4: Why the Two Disagree}
+In a few sentences: why do we tend to keep more knots than are really needed?
+
+\answer
+
+\pagebreak
+
+\problem{3: Your Own Basis, and a Rule That OLS Cannot Follow}
+
+Like we saw in class, Guassian blobs evenly spaced by years can be hard to fit a yield curve to. The reason is that most of the "interesting" part of the yield curve happens in the first few years to maturity.
+
+A lognormal basis function is a Gaussian blob in $\log$ tenor:
+$$
+\phi_i(\tau) = \exp \left( - \frac{(\log \tau - \mu_i)^2}{2 s^2} \right)
+$$
+
+    \begin{lstlisting}[language=Python]
+def lognormal_basis(tau, mu, s):
+    return np.exp(-((np.log(tau) - mu) ** 2) / (2 * s ** 2))
+
+TENORS  = np.array([0.25, 0.5, 0.75, 1, 2, 3, 4, 5, 7, 10, 12, 15, 20, 25, 30], dtype=float)
+CENTRES = np.log(np.array([0.5, 1.5, 4.0, 12.0, 30.0]))
+WIDTH   = 0.9
+
+def true_curve(tau):
+    return 0.02 + 0.01 * np.sqrt(tau)
+
+rng = np.random.RandomState(0)
+y3 = true_curve(TENORS) + rng.normal(0, 0.0004, len(TENORS))
+
+tau_fine = np.linspace(0.25, 30, 500)
+
+def ln_design(tau):
+    return np.column_stack([lognormal_basis(tau, m, WIDTH) for m in CENTRES])
+
+A3 = ln_design(TENORS)\end{lstlisting}
+
+\subproblem{3.1: The Basis}
+\begin{itemize}
+    \item Plot the five basis functions against $\tau$ on \texttt{tau\_fine}.
+    \item Take the blob at 0.5 years and the blob at 30 years. For each one, give (roughly) the width in years over which the blob is at or above 0.5.
+\end{itemize}
+
+\answer
+
+\subproblem{3.2: Ordinary Least Squares}
+Fit the five weights with OLS on \texttt{A3} and \texttt{y3}. Store them as \texttt{w\_ols3}.
+\begin{itemize}
+    \item Give the five weights, and the number of them that are negative.
+    \item In one sentence, why is a negative weight hard to explain when each basis function is a blob of yield?
+\end{itemize}
+
+\answer
+
+\subproblem{3.3: Non-Negative Weights}
+In class we said that we could stop the negative weights with the rule $w \ge 0$. Apply that rule:
+
+    \begin{lstlisting}[language=Python]
+from scipy.optimize import minimize, nnls
+
+res = minimize(lambda w: np.sum((A3 @ w - y3) ** 2), np.maximum(w_ols3, 0.0),
+               method="L-BFGS-B", bounds=[(0.0, None)] * A3.shape[1],
+               options={"maxiter": 100000, "ftol": 1e-18, "gtol": 1e-14})\end{lstlisting}
+
+\begin{itemize}
+    \item Give the five new weights.
+    \item Give the RMSE against \texttt{true\_curve(tau\_fine)}.
+    \item Plot your two fitted yield curves against the data, which do you think looks better?
+\end{itemize}
+
+\answer
+
+\pagebreak
+
+\problem{4: Switching Up Losses}
+
+Sometimes, data might have bad values.
+
+    \begin{lstlisting}[language=Python]
+x4 = np.linspace(0, 1, 120)
+clean_curve = np.sin(2 * np.pi * x4)
+
+rng = np.random.RandomState(5)
+y4 = clean_curve + rng.normal(0, 0.05, 120)
+bad_idx = rng.choice(120, 8, replace=False)
+y4[bad_idx] += rng.choice([-1, 1], 8) * 1.5     # 8 bad values
+
+B4 = basis(x4, knots(8))          # 10 parameters
+w_ols = fit_ols(B4, y4)           # the start point for both fits below\end{lstlisting}
+
+Use these settings for every fit in this problem. Start each fit from the OLS answer.
+
+    \begin{lstlisting}[language=Python]
+from scipy.optimize import minimize
+
+OPT = {"maxiter": 50000, "maxfun": 200000, "ftol": 1e-15, "gtol": 1e-12}
+# minimize(loss, w_ols, method="L-BFGS-B", options=OPT)\end{lstlisting}
+
+\subproblem{4.1: Least Squares}
+Plot the data, the OLS curve, and \texttt{clean\_curve} on one set of axes. Show the 8 bad values in a different color.
+
+\answer
+
+\subproblem{4.2: Two Other Losses}
+Write these two losses yourself, then run them through \texttt{scipy.optimize.minimize}:
+\begin{itemize}
+    \item the Huber loss with $\delta = 0.1$:
+    $$
+    \rho_\delta(r) = \begin{cases}
+        \tfrac{1}{2} r^2 & |r| \le \delta \\[2pt]
+        \delta \left( |r| - \tfrac{1}{2}\delta \right) & |r| > \delta
+    \end{cases}
+    $$
+    \item the (almost) absolute loss. Use the smooth version below (so that it's differentiable at $r=0$).
+    $$
+    \rho(r) = \sqrt{r^2 + \varepsilon^2}, \qquad \varepsilon = 10^{-3}
+    $$
+\end{itemize}
+Plot these two curves and the OLS curve from 4.1 together with \texttt{clean\_curve}.
+
+\answer
+
+\subproblem{4.3: Which Loss Wins}
+\begin{itemize}
+    \item Give the RMSE of the three fits against \texttt{clean\_curve}.
+    \item Which one is lowest, and why?
+    \item Now give the RMSE of the three fits against \texttt{y4} as well. Which is better, and why do you think that is?
+\end{itemize}
+
+\answer
+
+\subproblem{4.4: The Effect of $\delta$}
+Fit the Huber loss again for $\delta \in \{0.01,\, 0.05,\, 0.1,\, 0.5,\, 1.0,\, 5.0\}$.
+\begin{itemize}
+    \item Give the RMSE against \texttt{clean\_curve} for each $\delta$.
+    \item What is Huber loss like for very small $\delta$? And what is it like for really big $\delta$?
+\end{itemize}
+
+\answer
+
+\end{document}
