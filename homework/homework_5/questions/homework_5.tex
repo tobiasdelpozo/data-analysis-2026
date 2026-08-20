@@ -1,0 +1,348 @@
+\documentclass[11pt, letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{amsmath, amssymb}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\setlength{\parindent}{0pt}
+\setlist{itemsep=0.5em}
+\setlength{\parskip}{0.5em}
+
+\geometry{margin=1in}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textbf{Student Name:} \textcolor{red}{YOUR NAME}} % CHANGE NAME HERE
+\rhead{\textbf{Data Analysis and Regression, Homework 5}}
+\cfoot{\thepage}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+\newcommand{\problem}[1]{\section*{Problem #1}}
+\newcommand{\subproblem}[1]{\subsection*{Problem #1}}
+\newcommand{\answer}{\textbf{\textit{\textcolor{red}{Answer:}}}}
+\begin{document}
+
+\section*{Instructions}
+\begin{itemize}
+    \item Homework 5 is due Wednesday, August 26th at 18:00 Chicago Time.
+    \begin{itemize}
+        \item We will not accept any submissions past 18:00:00, even if they are only one second late.
+    \end{itemize}
+    \item You \textbf{must} upload the following files to the class Canvas:
+    \begin{itemize}
+        \item \texttt{LASTNAME\_FIRSTNAME.pdf}
+        \item \texttt{LASTNAME\_FIRSTNAME.ipynb}
+    \end{itemize}
+    \item Your code notebook \textbf{must} be runnable using my environment outlined in class 1 (Python 3.14, and the \texttt{requirements.txt}).
+    \item You \textbf{must} use this template file and fill out your solutions for the written portion.
+    \item Please note that your last name and first name should match what you appear on Canvas as.
+    \item Include code snippets where required, as well as math and equations.
+    \item Be \textit{concise} where possible, all of the homework problems can be answered in a few lines of math, code, and words.
+\end{itemize}
+\hrule
+\vspace{0.5cm}
+
+\pagebreak
+
+\problem{1: PCA from Scratch}
+
+In this problem, you will implement Principal Component Analysis (PCA) ``by hand'' (using basic linear algebra functions) and compare it to the standard implementation.
+
+Generate a dataset with $n=500$ observations and 3 highly correlated features.
+$$ \mu = [0, 0, 0] $$
+$$ \Sigma = \begin{pmatrix} 1 & 0.9 & 0.7 \\ 0.9 & 1 & 0.8 \\ 0.7 & 0.8 & 1 \end{pmatrix} $$
+
+    \begin{lstlisting}[language=Python]
+import numpy as np
+np.random.seed(42)
+mean = [0, 0, 0]
+cov = [[1, 0.9, 0.7], [0.9, 1, 0.8], [0.7, 0.8, 1]]
+X = np.random.multivariate_normal(mean, cov, 500)\end{lstlisting}
+
+\subproblem{1.1: Eigendecomposition}
+\begin{itemize}
+    \item Calculate the covariance matrix of the data $X$ manually (recall $\text{Cov}(X) = \frac{1}{n-1}X^T X$ if $X$ is centered).
+    \item Find the eigenvalues and eigenvectors of this covariance matrix using \texttt{np.linalg.eig}.
+    \item Report the eigenvalues and eigenvectors.
+\end{itemize}
+
+\answer
+
+\subproblem{1.2: Projection}
+\begin{itemize}
+    \item Project the data $X$ onto the principal components (the eigenvectors). 
+    \item Plot the original data (pick any 2 dimensions) and the projected data (PC1 vs PC2).
+\end{itemize}
+
+\answer
+
+\subproblem{1.3: Verification}
+\begin{itemize}
+    \item Use \texttt{sklearn.decomposition.PCA} to perform PCA on the same data.
+    \item Compare the components (eigenvectors) and explained variance (eigenvalues) from \texttt{sklearn} with your manual calculation. Are they the same?
+\end{itemize}
+
+\answer
+
+\problem{2: The Pitfalls of Principal Component Regression (PCR)}
+
+A common misconception is that the principal components with the largest variance are always the most useful features for prediction. This problem illustrates a scenario where this is \textbf{not} true.
+
+Generate the following dataset:
+
+    \begin{lstlisting}[language=Python]
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+from sklearn.decomposition import PCA
+
+np.random.seed(42)
+n = 500
+
+X_high_var = np.random.normal(0, 10, (n, 7))
+X_low_var = np.random.normal(0, 1, (n, 3))
+X = np.hstack([X_high_var, X_low_var])
+
+true_beta = np.array([0]*7 + [2, -2, 2])
+y = X @ true_beta + np.random.normal(0, 0.5, n)\end{lstlisting}
+
+\subproblem{2.1: PCA Analysis}
+Run PCA on the raw input matrix $X$. You must center the data first ($\tilde{X} = X - \bar{X}$). 
+\begin{itemize}
+    \item Report the explained variance ratio for all 10 components.
+    \item Which components capture the majority of the variance?
+\end{itemize}
+
+\answer
+
+\subproblem{2.2: PCR - Regressing on High Variance Components}
+Fit an OLS model using \textbf{only} the first 7 principal components to predict $y$.
+\begin{itemize}
+    \item Report the $R^2$ of this model.
+    \item Does capturing the majority of the variance ensure good predictive power?
+\end{itemize}
+
+\answer
+
+\subproblem{2.3: PCR - Regressing on Low Variance Components}
+Fit an OLS model using \textbf{only} the last 3 principal components (PC8, PC9, PC10) to predict $y$.
+\begin{itemize}
+    \item Report the $R^2$ of this model.
+\end{itemize}
+
+\answer
+
+\subproblem{2.4: Conclusion}
+Based on your results, explain why simply selecting the top $k$ principal components for a regression model might be dangerous.
+
+\answer
+
+\problem{3: Bagging from Scratch}
+
+In class, we discussed how Bagging (Bootstrap Aggregating) reduces variance by averaging predictions from multiple models trained on bootstrapped samples. You will implement this manually.
+
+Generate a synthetic ``checkerboard'' dataset:
+    \begin{lstlisting}[language=Python]
+import pandas as pd
+np.random.seed(42)
+n_points = 500
+grid_size = 4
+limit = 10
+step = (limit * 2) / grid_size
+
+all_points = []
+all_labels = []
+
+for i in range(grid_size):
+    for j in range(grid_size):
+        label = (i + j) % 2
+        x_min, x_max = -limit + i * step, -limit + (i + 1) * step
+        y_min, y_max = -limit + j * step, -limit + (j + 1) * step
+        points_x = np.random.uniform(x_min, x_max, int(n_points/16))
+        points_y = np.random.uniform(y_min, y_max, int(n_points/16))
+        all_points.append(np.vstack((points_x, points_y)).T)
+        all_labels.extend([label] * int(n_points/16))
+
+X = np.vstack(all_points)
+y = np.array(all_labels)\end{lstlisting}
+
+\subproblem{3.1: Single Decision Tree}
+Fit a single \texttt{DecisionTreeClassifier} (from \texttt{sklearn}) with \texttt{max\_depth=None} (or a high number like 10) to the data.
+\begin{itemize}
+    \item Visualize the decision boundary (you can use the meshgrid method shown in class).
+    \item Does the decision boundary look smooth? Does it look like it's overfitting?
+\end{itemize}
+
+\answer
+
+\subproblem{3.2: Manual Bagging Implementation}
+Implement Bagging manually (do \textbf{not} use \texttt{BaggingClassifier}).
+\begin{itemize}
+    \item Create a loop that runs $B=100$ times.
+    \item Inside the loop:
+    \begin{enumerate}
+        \item Create a bootstrap sample of the dataset (sample $N$ rows with replacement).
+        \item Fit a new \texttt{DecisionTreeClassifier} (max\_depth=5) on this bootstrap sample.
+        \item Store the trained tree in a list.
+    \end{enumerate}
+    \item To predict for a new point (or the meshgrid for plotting), get predictions from all 100 trees and take the majority vote (average).
+\end{itemize}
+
+Visualize the decision boundary of your manual Bagging ensemble. Compare it to the single decision tree in 3.1. Is it smoother?
+
+\answer
+
+\problem{4: Gradient Boosting from Scratch}
+
+We often use OLS because it is simple and interpretable. However, it can suffer from high bias if the true relationship is non-linear. In this problem, you will implement Gradient Boosting manually to correct the bias of an OLS model.
+
+Generate the following non-linear dataset:
+    \begin{lstlisting}[language=Python]
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor
+
+np.random.seed(42)
+X = np.linspace(0, 10, 100).reshape(-1, 1)
+# y is exponential, which OLS struggles with
+y = np.exp(X.ravel() / 3) + np.random.normal(0, 0.5, 100)\end{lstlisting}
+
+\subproblem{4.1: The Base Model (OLS)}
+\begin{itemize}
+    \item Fit a standard Linear Regression (OLS) model to $X$ and $y$.
+    \item Calculate and report the Mean Squared Error (MSE).
+    \item Plot the data and the OLS prediction line. Observe how the straight line fails to capture the curve (high bias).
+\end{itemize}
+
+\answer
+
+\subproblem{4.2: Boosting with Residuals}
+Now, we will boost this model by iteratively fitting the residuals with weak learners (shallow trees).
+
+Implement the following algorithm:
+\begin{enumerate}
+    \item Initialize predictions with the OLS model: $F_0(x) = \hat{y}_{OLS}$.
+    \item Set learning rate $\eta = 0.1$.
+    \item Loop 50 times ($m=1$ to $50$):
+    \begin{itemize}
+        \item Calculate residuals: $r_m = y - F_{m-1}(x)$.
+        \item Fit a \texttt{DecisionTreeRegressor} with \texttt{max\_depth=1} to the data $(X, r_m)$. This is your weak learner $h_m(x)$.
+        \item Update predictions: $F_m(x) = F_{m-1}(x) + \eta \cdot h_m(x)$.
+    \end{itemize}
+\end{enumerate}
+
+\answer
+
+\subproblem{4.3: Results}
+\begin{itemize}
+    \item Plot the final boosted prediction $F_{50}(x)$ against the original data.
+    \item Calculate the final MSE. Compare it to the OLS MSE.
+    \item Explain intuitively what the boosting process did to the original linear line.
+\end{itemize}
+
+\answer
+
+\problem{5: Boosting vs. Random Forest}
+
+Using the same dataset as Problem 3 (the checkerboard), we will compare Random Forest (which uses Bagging + feature splitting) and AdaBoost (which reduces bias).
+
+\subproblem{5.1: Model Comparison}
+\begin{itemize}
+    \item Fit a \texttt{RandomForestClassifier} with 100 estimators.
+    \item Fit an \texttt{AdaBoostClassifier} with 50 estimators (base estimator can be a Tree with depth 3).
+    \item Report the accuracy of both models on the dataset (since we didn't do a train/test split, reporting training accuracy is fine for this illustrative comparison).
+\end{itemize}
+
+\answer
+
+\subproblem{5.2: Conceptual Question}
+Explain in 2-3 sentences:
+\begin{itemize}
+    \item Why does Random Forest help reduce \textit{variance}?
+    \item Why does Boosting help reduce \textit{bias}?
+\end{itemize}
+
+\answer
+
+\problem{6: Clustering from Scratch (DBSCAN Flavor)}
+
+Standard K-Means clustering assumes that clusters are spherical and roughly the same size. 
+DBSCAN is an alternative that finds clusters of arbitrary shape. You will implement a simplified version of this.
+
+Generate the ``Moons" dataset:
+    \begin{lstlisting}[language=Python]
+from sklearn.datasets import make_moons
+import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+X, _ = make_moons(n_samples=300, noise=0.05)\end{lstlisting}
+
+\subproblem{6.1: The Algorithm}
+It may be helpful to cache the pairwise distances between points to speed up the algorithm,
+you can do this using \texttt{scipy.spatial.distance.cdist} or numpy operations.
+
+Implement the following simplified DBSCAN logic:
+\begin{itemize}
+    \item Set $\epsilon = 0.2$ and $\text{MinPts} = 5$.
+    \item Initialize all points as unvisited.
+    \item Initialize \texttt{cluster\_id = 0}.
+    \item Loop through each point $P$ in $X$:
+    \begin{itemize}
+        \item If $P$ is visited, continue.
+        \item Mark $P$ as visited.
+        \item Find all neighbors of $P$ within distance $\epsilon$.
+        \item If number of neighbors $< \text{MinPts}$, mark $P$ as Noise (Cluster \texttt{-1}).
+        \item If number of neighbors $\ge \text{MinPts}$:
+        \begin{itemize}
+            \item Increment \texttt{cluster\_id}.
+            \item Assign $P$ to \texttt{cluster\_id}.
+            \item Expand the cluster (Breadth-First Search): Add all neighbors to a queue. For each point $Q$ in the queue:
+            \begin{itemize}
+                \item If $Q$ is unvisited, mark it visited.
+                \item If $Q$ has enough neighbors ($\ge \text{MinPts}$), add those neighbors to the queue.
+                \item If $Q$ is not yet assigned to a cluster, assign it to \texttt{cluster\_id}.
+            \end{itemize}
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\answer
+
+\subproblem{6.2: Visualization}
+\begin{itemize}
+    \item Plot the points $X$, colored by their assigned cluster labels.
+    \item Verify using \texttt{sklearn.cluster.DBSCAN} with the same parameters. Do the plots look the same?
+\end{itemize}
+
+\answer
+
+\end{document}
